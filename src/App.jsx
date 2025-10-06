@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "@fontsource/orbitron/400.css";
 import "@fontsource/orbitron/700.css";
 import { FaXTwitter, FaFacebook, FaLinkedin } from "react-icons/fa6";
@@ -17,13 +17,15 @@ export default function LandingPage() {
   });
 
   const [message, setMessage] = useState("");
+  const recaptchaRef = useRef(null);
   const [recaptchaWidgetId, setRecaptchaWidgetId] = useState(null);
 
+  // Render reCAPTCHA once after component mounts
   useEffect(() => {
-    // Render reCAPTCHA after component mounts
-    if (window.grecaptcha && !recaptchaWidgetId) {
-      const widgetId = window.grecaptcha.render("recaptcha-container", {
-        sitekey: "6LfZPuArAAAAAAuFCmlHuZf5HpJfD0sL-fCP_k2B",
+    if (window.grecaptcha && recaptchaRef.current && recaptchaWidgetId === null) {
+      const widgetId = window.grecaptcha.render(recaptchaRef.current, {
+        sitekey: "6LfZPuArAAAAAAuFCmlHuZf5HpJfD0sL-fCP_k2B", // your site key
+        callback: () => {}, // optional callback
       });
       setRecaptchaWidgetId(widgetId);
     }
@@ -66,7 +68,7 @@ export default function LandingPage() {
 
     try {
       const scriptURL =
-        "https://script.google.com/macros/s/AKfycbwwmG2p8qixmITRBD24p1wPidkIbSYFcvJxk8QFdP94-Xev0ZgAPeJtNjoU4ta7OF9rNg/exec";
+        "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
 
       const formDataWithToken = {
         ...formData,
@@ -111,17 +113,14 @@ export default function LandingPage() {
 
   return (
     <div className="landing-container">
-      {/* Hero Section */}
       <header className="landing-header">
         <h1 className="logo-text">Forgesite</h1>
       </header>
 
       <main className="landing-main">
-        {/* Left Side */}
         <div className="landing-intro">
           <h2>
-            Build Websites Effortlessly,{" "}
-            <span className="highlight">Powered by AI</span>
+            Build Websites Effortlessly, <span className="highlight">Powered by AI</span>
           </h2>
           <p>
             Forgesite helps entrepreneurs and teams bring their ideas online in
@@ -131,7 +130,6 @@ export default function LandingPage() {
           <p className="coming-soon">Launching soon 🚀</p>
         </div>
 
-        {/* Right Side */}
         <div className="form-container">
           <h3>Join the Waitlist</h3>
           <form onSubmit={handleSubmit}>
@@ -152,7 +150,6 @@ export default function LandingPage() {
               required
             />
 
-            {/* Country Code + Phone */}
             <div className="phone-group">
               <select
                 name="countryCode"
@@ -215,7 +212,7 @@ export default function LandingPage() {
             />
 
             {/* ✅ reCAPTCHA */}
-            <div id="recaptcha-container" style={{ marginBottom: "10px" }}></div>
+            <div ref={recaptchaRef} style={{ marginBottom: "10px" }}></div>
 
             <button type="submit">Join Now</button>
           </form>
@@ -250,13 +247,9 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      {/* Background Decorations */}
       <div className="circle circle1"></div>
       <div className="circle circle2"></div>
       <div className="circle circle3"></div>
     </div>
   );
 }
-
-
-
