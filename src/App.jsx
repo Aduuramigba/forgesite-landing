@@ -25,14 +25,14 @@ export default function LandingPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Basic email validation
+    // ✅ Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       setMessage("⚠️ Please enter a valid email address.");
       return;
     }
 
-    // Prevent disposable emails
+    // ✅ Prevent disposable emails
     const disposableDomains = [
       "mailinator.com",
       "tempmail.com",
@@ -48,12 +48,13 @@ export default function LandingPage() {
 
     try {
       const scriptURL =
-        "https://script.google.com/macros/s/AKfycbzStcHA9MlhjZ0MFCtkgForbRS9Kw8PrFvfARU8ClhUGTZGNBEo-0tw-2YC0726DZZP1A/exec";
+        "https://script.google.com/macros/s/AKfycbwxyHSQxke6E6WiOZy3onCq_1jmDs9VDkYueHu2cKqukEvNNS0xiMwNjuU5wO7B9-TE1A/exec";
 
+      // ✅ URL-encoded data
       const urlEncodedData = new URLSearchParams({
         ...formData,
         phone: `${formData.countryCode}${formData.phone}`,
-      });
+      }).toString();
 
       const response = await fetch(scriptURL, {
         method: "POST",
@@ -61,9 +62,9 @@ export default function LandingPage() {
         body: urlEncodedData,
       });
 
-      const result = await response.json();
+      const resultText = await response.text();
 
-      if (result.status === "success") {
+      if (resultText === "success") {
         setMessage(
           "✅ You're on the waitlist! Check your email for a welcome message."
         );
@@ -77,9 +78,7 @@ export default function LandingPage() {
           goal: "",
         });
       } else {
-        setMessage(
-          `❌ ${result.message || "Something went wrong. Please try again."}`
-        );
+        setMessage("❌ Something went wrong. Please try again.");
       }
     } catch (error) {
       console.error("Error:", error);
