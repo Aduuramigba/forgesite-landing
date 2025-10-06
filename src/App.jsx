@@ -20,11 +20,11 @@ export default function LandingPage() {
   const recaptchaRef = useRef(null);
   const [recaptchaWidgetId, setRecaptchaWidgetId] = useState(null);
 
-  // Render reCAPTCHA
+  // Initialize reCAPTCHA
   useEffect(() => {
     if (window.grecaptcha && recaptchaRef.current && recaptchaWidgetId === null) {
       const widgetId = window.grecaptcha.render(recaptchaRef.current, {
-        sitekey: "6LfZPuArAAAAAAuFCmlHuZf5HpJfD0sL-fCP_k2B", // your site key
+        sitekey: "6LfZPuArAAAAAAuFCmlHuZf5HpJfD0sL-fCP_k2B",
       });
       setRecaptchaWidgetId(widgetId);
     }
@@ -66,9 +66,8 @@ export default function LandingPage() {
 
     try {
       const scriptURL =
-        "https://script.google.com/macros/s/AKfycbwvz38mkZn028G0u8rRWzEw8u3f6rtUShAlqZXP5792mbGCj43j5YCdLWaubNYZkm0K0Q/exec";
+        "https://script.google.com/macros/s/AKfycbzE3g4lfxLSY04t9_Os-1qy0Ih0zt78Oc6OBRU573gWUqo0d62j_4kOcxzOjiYgDgX1Aw/exec";
 
-      // URL-encoded form data to avoid CORS preflight
       const urlEncodedData = new URLSearchParams({
         ...formData,
         phone: `${formData.countryCode}${formData.phone}`,
@@ -245,7 +244,6 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      {/* Decorative circles */}
       <div className="circle circle1"></div>
       <div className="circle circle2"></div>
       <div className="circle circle3"></div>
