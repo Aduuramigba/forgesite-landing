@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "@fontsource/orbitron/400.css";
 import "@fontsource/orbitron/700.css";
 import { FaXTwitter, FaFacebook, FaLinkedin } from "react-icons/fa6";
@@ -17,6 +17,17 @@ export default function LandingPage() {
   });
 
   const [message, setMessage] = useState("");
+  const [recaptchaWidgetId, setRecaptchaWidgetId] = useState(null);
+
+  useEffect(() => {
+    // Render reCAPTCHA after component mounts
+    if (window.grecaptcha && !recaptchaWidgetId) {
+      const widgetId = window.grecaptcha.render("recaptcha-container", {
+        sitekey: "6LfZPuArAAAAAAuFCmlHuZf5HpJfD0sL-fCP_k2B",
+      });
+      setRecaptchaWidgetId(widgetId);
+    }
+  }, [recaptchaWidgetId]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -25,8 +36,8 @@ export default function LandingPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // ✅ reCAPTCHA verification
-    const token = window.grecaptcha?.getResponse();
+    // ✅ Get reCAPTCHA token
+    const token = window.grecaptcha?.getResponse(recaptchaWidgetId);
     if (!token) {
       setMessage("⚠️ Please verify you’re human before submitting.");
       return;
@@ -55,20 +66,18 @@ export default function LandingPage() {
 
     try {
       const scriptURL =
-        "https://script.google.com/macros/s/AKfycbzfyDQlKhHi8WIhDm8AHTzhA90DW0AozyCGGvBTmK6DhXqzUSNkGZpwS3Iol5oPjKfa/exec";
+        "https://script.google.com/macros/s/AKfycbwwmG2p8qixmITRBD24p1wPidkIbSYFcvJxk8QFdP94-Xev0ZgAPeJtNjoU4ta7OF9rNg/exec";
 
-      // Merge phone & countryCode + attach reCAPTCHA token
-      const formDataWithFullPhone = {
+      const formDataWithToken = {
         ...formData,
         phone: `${formData.countryCode}${formData.phone}`,
-        recaptchaToken: token, // send token to backend
+        recaptchaToken: token,
       };
 
-      // ✅ Send as JSON
       const response = await fetch(scriptURL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formDataWithFullPhone),
+        body: JSON.stringify(formDataWithToken),
       });
 
       const result = await response.json();
@@ -86,10 +95,13 @@ export default function LandingPage() {
           businessSize: "",
           goal: "",
         });
+
         // Reset reCAPTCHA
-        window.grecaptcha?.reset();
+        window.grecaptcha?.reset(recaptchaWidgetId);
       } else {
-        setMessage(`❌ ${result.message || "Something went wrong. Please try again."}`);
+        setMessage(
+          `❌ ${result.message || "Something went wrong. Please try again."}`
+        );
       }
     } catch (error) {
       console.error("Error:", error);
@@ -203,11 +215,7 @@ export default function LandingPage() {
             />
 
             {/* ✅ reCAPTCHA */}
-            <div
-              className="g-recaptcha"
-              data-sitekey="6LfZPuArAAAAAAuFCmlHuZf5HpJfD0sL-fCP_k2B"
-              style={{ marginBottom: "10px" }}
-            ></div>
+            <div id="recaptcha-container" style={{ marginBottom: "10px" }}></div>
 
             <button type="submit">Join Now</button>
           </form>
