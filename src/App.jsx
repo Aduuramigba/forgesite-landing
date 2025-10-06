@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import "@fontsource/orbitron/400.css";
 import "@fontsource/orbitron/700.css";
 import { FaXTwitter, FaFacebook, FaLinkedin } from "react-icons/fa6";
@@ -17,18 +17,6 @@ export default function LandingPage() {
   });
 
   const [message, setMessage] = useState("");
-  const recaptchaRef = useRef(null);
-  const [recaptchaWidgetId, setRecaptchaWidgetId] = useState(null);
-
-  // Initialize reCAPTCHA
-  useEffect(() => {
-    if (window.grecaptcha && recaptchaRef.current && recaptchaWidgetId === null) {
-      const widgetId = window.grecaptcha.render(recaptchaRef.current, {
-        sitekey: "6LfZPuArAAAAAAuFCmlHuZf5HpJfD0sL-fCP_k2B",
-      });
-      setRecaptchaWidgetId(widgetId);
-    }
-  }, [recaptchaWidgetId]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -36,12 +24,6 @@ export default function LandingPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const token = window.grecaptcha?.getResponse(recaptchaWidgetId);
-    if (!token) {
-      setMessage("⚠️ Please verify you’re human before submitting.");
-      return;
-    }
 
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -66,12 +48,11 @@ export default function LandingPage() {
 
     try {
       const scriptURL =
-        "https://script.google.com/macros/s/AKfycbzE3g4lfxLSY04t9_Os-1qy0Ih0zt78Oc6OBRU573gWUqo0d62j_4kOcxzOjiYgDgX1Aw/exec";
+        "https://script.google.com/macros/s/AKfycbzStcHA9MlhjZ0MFCtkgForbRS9Kw8PrFvfARU8ClhUGTZGNBEo-0tw-2YC0726DZZP1A/exec";
 
       const urlEncodedData = new URLSearchParams({
         ...formData,
         phone: `${formData.countryCode}${formData.phone}`,
-        recaptchaToken: token,
       });
 
       const response = await fetch(scriptURL, {
@@ -95,7 +76,6 @@ export default function LandingPage() {
           businessSize: "",
           goal: "",
         });
-        window.grecaptcha?.reset(recaptchaWidgetId);
       } else {
         setMessage(
           `❌ ${result.message || "Something went wrong. Please try again."}`
@@ -207,9 +187,6 @@ export default function LandingPage() {
               value={formData.goal}
               onChange={handleChange}
             />
-
-            {/* reCAPTCHA */}
-            <div ref={recaptchaRef} style={{ marginBottom: "10px" }}></div>
 
             <button type="submit">Join Now</button>
           </form>
