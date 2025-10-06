@@ -55,36 +55,42 @@ export default function LandingPage() {
 
     try {
       const scriptURL =
-        "https://script.google.com/macros/s/AKfycbxgoq5yJkaRTo9NHVtxVWJbqP7nmzr6x39hPgMk09HuoRc_6qqbH91m19zLZ5zE3bxp/exec";
+        "https://script.google.com/macros/s/AKfycbzfyDQlKhHi8WIhDm8AHTzhA90DW0AozyCGGvBTmK6DhXqzUSNkGZpwS3Iol5oPjKfa/exec";
 
       // Merge phone & countryCode + attach reCAPTCHA token
       const formDataWithFullPhone = {
         ...formData,
         phone: `${formData.countryCode}${formData.phone}`,
-        token, // ✅ Add reCAPTCHA token
+        recaptchaToken: token, // send token to backend
       };
 
-      await fetch(scriptURL, {
+      // ✅ Send as JSON
+      const response = await fetch(scriptURL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formDataWithFullPhone),
       });
 
-      setMessage(
-        "✅ You're on the waitlist! Check your email for a welcome message."
-      );
-      setFormData({
-        fullName: "",
-        email: "",
-        countryCode: "+234",
-        phone: "",
-        industry: "",
-        businessSize: "",
-        goal: "",
-      });
+      const result = await response.json();
 
-      // Reset reCAPTCHA after submit
-      window.grecaptcha?.reset();
+      if (result.status === "success") {
+        setMessage(
+          "✅ You're on the waitlist! Check your email for a welcome message."
+        );
+        setFormData({
+          fullName: "",
+          email: "",
+          countryCode: "+234",
+          phone: "",
+          industry: "",
+          businessSize: "",
+          goal: "",
+        });
+        // Reset reCAPTCHA
+        window.grecaptcha?.reset();
+      } else {
+        setMessage(`❌ ${result.message || "Something went wrong. Please try again."}`);
+      }
     } catch (error) {
       console.error("Error:", error);
       setMessage("❌ Something went wrong. Please try again.");
@@ -226,9 +232,11 @@ export default function LandingPage() {
           >
             <FaFacebook />
           </a>
-          <a href="https://www.linkedin.com/company/forgesite-hq"
-             target="_blank" 
-             rel="noopener noreferrer">
+          <a
+            href="https://www.linkedin.com/company/forgesite-hq"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <FaLinkedin />
           </a>
         </div>
@@ -241,5 +249,6 @@ export default function LandingPage() {
     </div>
   );
 }
+
 
 
