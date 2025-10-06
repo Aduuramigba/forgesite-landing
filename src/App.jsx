@@ -68,7 +68,7 @@ export default function LandingPage() {
 
     try {
       const scriptURL =
-        "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
+        "https://script.google.com/macros/s/AKfycbwrEEu-nHIfLDRrPSY94lFuydg1uL8sEZS2DaMlMkKkBzgq2v4QyQgrqhloYKX4AnPuxg/exec";
 
       const formDataWithToken = {
         ...formData,
