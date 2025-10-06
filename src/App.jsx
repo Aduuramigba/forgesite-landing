@@ -9,7 +9,7 @@ export default function LandingPage() {
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
-    countryCode: "+234", // Default: Nigeria 🇳🇬
+    countryCode: "+234",
     phone: "",
     industry: "",
     businessSize: "",
@@ -25,24 +25,54 @@ export default function LandingPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // ✅ reCAPTCHA verification
+    const token = window.grecaptcha?.getResponse();
+    if (!token) {
+      setMessage("⚠️ Please verify you’re human before submitting.");
+      return;
+    }
+
+    // ✅ Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setMessage("⚠️ Please enter a valid email address.");
+      return;
+    }
+
+    // ✅ Prevent disposable emails
+    const disposableDomains = [
+      "mailinator.com",
+      "tempmail.com",
+      "guerrillamail.com",
+      "10minutemail.com",
+      "yopmail.com",
+    ];
+    const domain = formData.email.split("@")[1];
+    if (disposableDomains.includes(domain)) {
+      setMessage("⚠️ Please use a real email address.");
+      return;
+    }
+
     try {
       const scriptURL =
-        "https://script.google.com/macros/s/AKfycbzI6n0r7SYPvx2tl5GI76zegJZKH8_9zOPFYAB1OwsbrdsgI9d0fW7hUOD9AvQPgYbedQ/exec";
-      
-      //Merge phone & countryCode before sending
-         const formDataWithFullPhone = {
-            ...formData,
-          phone: `${formData.countryCode}${formData.phone}`,
-          };
+        "https://script.google.com/macros/s/AKfycbxgoq5yJkaRTo9NHVtxVWJbqP7nmzr6x39hPgMk09HuoRc_6qqbH91m19zLZ5zE3bxp/exec";
+
+      // Merge phone & countryCode + attach reCAPTCHA token
+      const formDataWithFullPhone = {
+        ...formData,
+        phone: `${formData.countryCode}${formData.phone}`,
+        token, // ✅ Add reCAPTCHA token
+      };
 
       await fetch(scriptURL, {
         method: "POST",
-        mode: "no-cors",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formDataWithFullPhone),
       });
 
-      setMessage("✅ You're on the waitlist! Check your email for a welcome message.");
+      setMessage(
+        "✅ You're on the waitlist! Check your email for a welcome message."
+      );
       setFormData({
         fullName: "",
         email: "",
@@ -52,6 +82,9 @@ export default function LandingPage() {
         businessSize: "",
         goal: "",
       });
+
+      // Reset reCAPTCHA after submit
+      window.grecaptcha?.reset();
     } catch (error) {
       console.error("Error:", error);
       setMessage("❌ Something went wrong. Please try again.");
@@ -75,7 +108,7 @@ export default function LandingPage() {
           <p>
             Forgesite helps entrepreneurs and teams bring their ideas online in
             minutes. No Code, No Stress. Join our waitlist and be among the
-            first to experience it, 50% discount for early access.
+            first to experience it — 50% discount for early access.
           </p>
           <p className="coming-soon">Launching soon 🚀</p>
         </div>
@@ -101,36 +134,32 @@ export default function LandingPage() {
               required
             />
 
-            
-
             {/* Country Code + Phone */}
             <div className="phone-group">
-             {/* inside your render, map africanCountryCodes */}
-<select
-  name="countryCode"
-  value={formData.countryCode}
-  onChange={handleChange}
-  required
-  className="country-select"
->
-  <option value="">Code</option>
-  {africanCountryCodes.map(c => (
-    <option key={c.code} value={c.code} title={c.label}>
-      {c.code}          {/* keep option text short so closed select stays narrow */}
-    </option>
-  ))}
-</select>
+              <select
+                name="countryCode"
+                value={formData.countryCode}
+                onChange={handleChange}
+                required
+                className="country-select"
+              >
+                <option value="">Code</option>
+                {africanCountryCodes.map((c) => (
+                  <option key={c.code} value={c.code} title={c.label}>
+                    {c.code}
+                  </option>
+                ))}
+              </select>
 
-<input
-  type="tel"
-  name="phone"
-  placeholder="Phone Number"
-  value={formData.phone}
-  onChange={handleChange}
-  required
-  className="phone-input"
-/>
-
+              <input
+                type="tel"
+                name="phone"
+                placeholder="Phone Number"
+                value={formData.phone}
+                onChange={handleChange}
+                required
+                className="phone-input"
+              />
             </div>
 
             <select
@@ -144,9 +173,10 @@ export default function LandingPage() {
               <option value="fashion">Fashion</option>
               <option value="food">Food</option>
               <option value="real-estate">Real Estate</option>
-              <option value="Entertainment">Entertainment</option>
+              <option value="entertainment">Entertainment</option>
               <option value="other">Other</option>
             </select>
+
             <select
               name="businessSize"
               value={formData.businessSize}
@@ -158,12 +188,21 @@ export default function LandingPage() {
               <option value="small-team">Small Team</option>
               <option value="enterprise">Enterprise</option>
             </select>
+
             <textarea
               name="goal"
               placeholder="What's your goal?"
               value={formData.goal}
               onChange={handleChange}
             />
+
+            {/* ✅ reCAPTCHA */}
+            <div
+              className="g-recaptcha"
+              data-sitekey="6LfZPuArAAAAAAuFCmlHuZf5HpJfD0sL-fCP_k2B"
+              style={{ marginBottom: "10px" }}
+            ></div>
+
             <button type="submit">Join Now</button>
           </form>
           {message && <p className="form-message">{message}</p>}
@@ -173,13 +212,23 @@ export default function LandingPage() {
       <footer className="landing-footer">
         © {new Date().getFullYear()} Forgesite. All rights reserved.
         <div className="social-links">
-          <a href="https://x.com/Forgesitehq" target="_blank" rel="noopener noreferrer">
+          <a
+            href="https://x.com/Forgesitehq"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <FaXTwitter />
           </a>
-          <a href="https://www.facebook.com/profile.php?id=61581176770466" target="_blank" rel="noopener noreferrer">
+          <a
+            href="https://www.facebook.com/Forgesite"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <FaFacebook />
           </a>
-          <a href="#" target="_blank" rel="noopener noreferrer">
+          <a href="https://www.linkedin.com/company/forgesite-hq"
+             target="_blank" 
+             rel="noopener noreferrer">
             <FaLinkedin />
           </a>
         </div>
@@ -192,4 +241,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
 
